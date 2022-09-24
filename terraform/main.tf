@@ -1,6 +1,4 @@
 resource "aws_spot_instance_request" "this" {
-  depends_on = [archive_file.zip]
-
   ami           = "ami-0f69dd1d0d03ad669" // Ubuntu ARM us-east-1
   instance_type = var.instance_type
 

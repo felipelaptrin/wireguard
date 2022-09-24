@@ -1,9 +1,9 @@
 #!/bin/bash
 
 apt-get update
+apt install python3-pip wireguard -y
 
-apt install wireguard -y
-
+### WIREGUARD
 cd /etc/wireguard
 wg genkey | tee privatekey | wg pubkey > publickey
 chmod 600 privatekey
@@ -22,7 +22,13 @@ PrivateKey = $privatekey
 EOF
 
 wg-quick up wg0
-
 sysctl -w net.ipv4.ip_forward=1
-
 sysctl --system
+
+### API
+cd ~
+git clone https://github.com/felipelaptrin/wireguard.git
+cd wireguard
+
+pip3 install -r api/requirements.txt
+python3 api/main.py

@@ -17,6 +17,7 @@ def health():
 @api.post("/user", response_model=PeerResponse)
 def user(peer: PeerRequest):
     new_private_ip = get_new_private_ip()
+    create_user(new_private_ip)
     try:
         create_user(new_private_ip)
     except:
@@ -36,7 +37,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:api",
         host="0.0.0.0",
-        port=8002,
+        port=8005,
         log_level="info",
         reload=True,
     )

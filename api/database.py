@@ -28,7 +28,8 @@ def get_new_private_ip():
         assert int(id) < 200, "Max number of connections in the VPN."
         ip_blocks = INITIAL_PRIVATE_IP.split(".")
         last_block = int(ip_blocks[-1]) + int(id)
-        ip = ".".join(ip_blocks[:3], last_block)
+        full_block = ip_blocks[:4] + [str(last_block)]
+        ip = ".".join(full_block)
         return ip
     conn.close()
     return INITIAL_PRIVATE_IP
@@ -42,6 +43,7 @@ def create_user(new_private_ip: str):
         """INSERT INTO users(private_ip) VALUES (?)""",
         (new_private_ip,),
     )
+    conn.commit()
     conn.close()
 
     return new_private_ip
