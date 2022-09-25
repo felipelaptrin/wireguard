@@ -28,7 +28,7 @@ def get_new_private_ip():
         assert int(id) < 200, "Max number of connections in the VPN."
         ip_blocks = INITIAL_PRIVATE_IP.split(".")
         last_block = int(ip_blocks[-1]) + int(id)
-        full_block = ip_blocks[:4] + [str(last_block)]
+        full_block = ip_blocks[:3] + [str(last_block)]
         ip = ".".join(full_block)
         return ip
     conn.close()
