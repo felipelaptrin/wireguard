@@ -20,14 +20,15 @@ First, make sure to have installed:
 - Terraform
 - AWS CLI
 - jq
+- qrencode
 
-1) **Clone this repo**
+### 1) **Clone this repo**
 ```sh
 git clone https://github.com/felipelaptrin/wireguard.git
 cd wireguard
 ```
 
-2) **Create the infrastructure**
+### 2) **Create the infrastructure**
 Create the infrastructure using Terraform:
 ```sh
 cd terraform
@@ -39,39 +40,55 @@ Feel free to modify default values based on the README inside the `terraform` fo
 
 **PS**: I decided to use a SPOT instance to run the VPN to make it cheap and I will only use it for a couple of hours on random days and I consider this to be non-critical, so I'm ok if the spot instance is lost because of the spot market. Be aware that the instance may be interrupted by AWS at any time.
 
-3) **Setup the client**
+### 3) **Setup the client**
 There is a script for installing Wireguard and setup all the configurations. Before running the scripts set the environment variables. Remember that the `<API_KEY>` you defined when applying terraform and `<EC2_PUBLIC_IP>` will be output at the end of the `terraform apply`.
 ```sh
 export API_KEY=<API_KEY>
 export EC2_PUBLIC_IP=<EC2_PUBLIC_IP>
 ```
 
-Run the script. Make sure to wait a couple of minutes (3 minutes is more than enough) to wait for the EC2 to be ready for use.
+Run the script. Make sure to wait a couple of minutes (3 minutes is more than enough) to wait for the EC2 to be ready for use. You can check if it's on by running `curl $EC2_PUBLIC_IP:8000/health`. And see the response is `{"status":"healthy"}`.
+
+`For a new unix (Linux/Mac) user:`
 ```sh
 cd ..
-sudo bash scripts/set_client.sh $API_KEY $EC2_PUBLIC_IP
+sudo bash scripts/set_client_unix.sh $API_KEY $EC2_PUBLIC_IP
+```
+
+`For mobile (Android/iOS) users:`
+```sh
+cd ..
+sudo bash scripts/set_client_mobile.sh $API_KEY $EC2_PUBLIC_IP
 ```
 
 Note that this step must be done for all VPN clients.
 
-4) **Connecting to the VPN**
-To connect to the VPN type:
+### 4) **Connecting to the VPN**
 
+`For unix user:`
+
+To connect to the VPN type:
 ```sh
 sudo wg-quick up wg0
 ```
-
 To disconnect you need to run:
 ```sh
 sudo wg-quick down wg0
 ```
 
+`For mobile users:`
+After setting up a mobile user, a QR core will be generated in the following path: /tmp/wireguard_qrcode.png. Open it and scan with your mobile.
 
-4) **Destroying everything**
+### 5) **Destroying everything**
 Are you done? Destroy all the infrastructure using terraform.
 
-```sh
+If you used in your unix computer then, first logout:
+```
 sudo wg-quick down wg0
+```
+
+Then you can destroy the infrastructure:
+```sh
 cd terraform
 terraform destroy
 ```
