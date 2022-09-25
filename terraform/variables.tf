@@ -15,3 +15,9 @@ variable "instance_type" {
   type        = string
   default     = "t4g.nano"
 }
+
+variable "api_key" {
+  description = "API key used to Auth when requesting to the API"
+  type        = string
+  sensitive   = true
+}

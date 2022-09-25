@@ -31,4 +31,5 @@ git clone https://github.com/felipelaptrin/wireguard.git
 cd wireguard
 
 pip3 install -r api/requirements.txt
+export API_KEY=${api_key}
 python3 api/main.py
