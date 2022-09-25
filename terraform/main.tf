@@ -2,6 +2,7 @@ resource "aws_spot_instance_request" "this" {
   ami           = data.aws_ami.this.id
   instance_type = var.instance_type
 
+  spot_type              = "one-time"
   block_duration_minutes = 0
   wait_for_fulfillment   = true
   key_name               = var.ssh_key
