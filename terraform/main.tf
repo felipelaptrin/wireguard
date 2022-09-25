@@ -1,5 +1,5 @@
 resource "aws_spot_instance_request" "this" {
-  ami           = "ami-0f69dd1d0d03ad669" // Ubuntu ARM us-east-1
+  ami           = data.aws_ami.this.id
   instance_type = var.instance_type
 
   block_duration_minutes = 0
@@ -13,7 +13,7 @@ resource "null_resource" "tag_spot_instance" {
   depends_on = [aws_spot_instance_request.this]
 
   provisioner "local-exec" {
-    command = "aws ec2 create-tags --resource ${aws_spot_instance_request.this.spot_instance_id} --tags Key=Name,Value=Wireguard"
+    command = "aws ec2 create-tags --resource ${aws_spot_instance_request.this.spot_instance_id} --tags Key=Name,Value=Wireguard --region ${var.region}"
   }
 }
 
