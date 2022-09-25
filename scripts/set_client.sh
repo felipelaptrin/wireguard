@@ -8,18 +8,15 @@ vpn_public_ip=$2
 
 
 ################ SCRIPT ######################
-## Install Wireguard
 echo "[INFO] Updading apt packages..."
-# apt-get update
+apt-get update
 echo "[INFO] Installing Wireguard..."
 apt install wireguard -y
 
-## Remove config files if exits
 echo "[INFO] Removing old files if exist..."
 cd /etc/wireguard
 rm -f publickey privatekey wg0.conf
 
-## Create config files
 echo "[INFO] Creating public and private key..."
 wg genkey | tee privatekey | wg pubkey > publickey
 chmod 600 privatekey publickey
