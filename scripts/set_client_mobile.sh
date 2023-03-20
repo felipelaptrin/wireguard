@@ -11,7 +11,7 @@ vpn_public_ip=$2
 echo "[INFO] Updading apt packages..."
 apt-get update
 echo "[INFO] Installing Wireguard..."
-apt install wireguard -y
+apt install wireguard qrencode -y
 
 echo "[INFO] Removing old files if exist..."
 cd /tmp
