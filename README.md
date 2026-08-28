@@ -1,93 +1,63 @@
 # wireguard
 
 ## Description
-This is a project for setup an on-demand VPN. It was done using:
-- `Wireguard`: Open source VPN software
-- `AWS`: Using AWS as cloud provider
-- `Terraform`: Setup all the infrastructure and configs
-- `Bash`: To set up the EC2 and config client instance
+On-demand personal VPN using:
+- **WireGuard** via [wg-easy](https://github.com/wg-easy/wg-easy) (Docker)
+- **AWS** as cloud provider (spot instance for cost savings)
+- **Terraform** for infrastructure
+- **AWS SSM Session Manager** for secure panel access (no SSH, no open port 22)
 
 ## Architecture
 
 ![Architecture](docs/architecture.png)
 
-The architecture of this project is really simple. The really small EC2 instance type, because we are only worried about networking running an API build using FastAPI (port 8000) and Wireguard (port 51820).
+A small ARM EC2 spot instance runs wg-easy in Docker. The WireGuard tunnel (port 51820/UDP) is the only port open to the internet. The wg-easy web panel (port 51821) is bound to localhost and accessed exclusively via SSM port forwarding — no SSH keys or bastion required.
 
-Since Wireguard relies on a public/private key system, I needed to share the server's public key with the host (you, in this case) and the host's public key with the server. Also, I would like to connect more than one host to the VPN, so there was a need to control the internal private IPs of the VPN.
+## How to Run
 
-## How to run?
-First, make sure to have installed:
+### Prerequisites
 - Terraform
-- AWS CLI
-- jq
-- qrencode
+- AWS CLI configured
+- [AWS Session Manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html)
 
-### 1) **Clone this repo**
+### 1) Clone this repo
 ```sh
 git clone https://github.com/felipelaptrin/wireguard.git
 cd wireguard
 ```
 
-### 2) **Create the infrastructure**
-Create the infrastructure using Terraform:
+### 2) Generate the wg-easy password hash
+wg-easy requires a bcrypt hash. Generate one with:
+```sh
+docker run --rm -it ghcr.io/wg-easy/wg-easy wgpw YOUR_PASSWORD
+```
+Copy the output hash — you'll need it in the next step.
+
+### 3) Create the infrastructure
 ```sh
 cd terraform
 terraform init
 terraform apply
 ```
 
-Feel free to modify default values based on the README inside the `terraform` folder. By default, you only need to define (after you run `terraform apply`) the API KEY to be used to auth the incoming requests.
+You will be prompted for `wg_password_hash` (the bcrypt hash from step 2).
 
-**PS**: I decided to use a SPOT instance to run the VPN to make it cheap and I will only use it for a couple of hours on random days and I consider this to be non-critical, so I'm ok if the spot instance is lost because of the spot market. Be aware that the instance may be interrupted by AWS at any time.
+Wait ~2 minutes for the instance to boot and Docker to start.
 
-### 3) **Setup the client**
-There is a script for installing Wireguard and setup all the configurations. Before running the scripts set the environment variables. Remember that the `<API_KEY>` you defined when applying terraform and `<EC2_PUBLIC_IP>` will be output at the end of the `terraform apply`.
+### 4) Open the wg-easy panel
+Use SSM port forwarding to access the web UI securely:
 ```sh
-export API_KEY=<API_KEY>
-export EC2_PUBLIC_IP=<EC2_PUBLIC_IP>
+bash scripts/tunnel.sh <INSTANCE_ID>
 ```
+The instance ID is printed by `terraform output instance_id`. Then open **http://localhost:51821** in your browser.
 
-Run the script. Make sure to wait a couple of minutes (3 minutes is more than enough) to wait for the EC2 to be ready for use. You can check if it's on by running `curl $EC2_PUBLIC_IP:8000/health`. And see the response is `{"status":"healthy"}`.
+### 5) Add clients
+From the wg-easy panel:
+- Click **+ Add Client**
+- **Mobile (Android/iOS):** scan the QR code with the WireGuard app
+- **Desktop:** download the `.conf` file and import it into the WireGuard client
 
-`For a new unix (Linux/Mac) user:`
-```sh
-cd ..
-sudo bash scripts/set_client_unix.sh $API_KEY $EC2_PUBLIC_IP
-```
-
-`For mobile (Android/iOS) users:`
-```sh
-cd ..
-sudo bash scripts/set_client_mobile.sh $API_KEY $EC2_PUBLIC_IP
-```
-
-Note that this step must be done for all VPN clients.
-
-### 4) **Connecting to the VPN**
-
-`For unix user:`
-
-To connect to the VPN type:
-```sh
-sudo wg-quick up wg0
-```
-To disconnect you need to run:
-```sh
-sudo wg-quick down wg0
-```
-
-`For mobile users:`
-After setting up a mobile user, a QR core will be generated in the following path: /tmp/wireguard_qrcode.png. Open it and scan with your mobile.
-
-### 5) **Destroying everything**
-Are you done? Destroy all the infrastructure using terraform.
-
-If you used in your unix computer then, first logout:
-```
-sudo wg-quick down wg0
-```
-
-Then you can destroy the infrastructure:
+### 6) Destroy when done
 ```sh
 cd terraform
 terraform destroy
