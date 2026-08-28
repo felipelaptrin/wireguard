@@ -4,20 +4,14 @@ variable "region" {
   default     = "us-east-1"
 }
 
-variable "ssh_key" {
-  description = "SSH key to use to connect to the EC2 running the Wireguard"
-  type        = string
-  default     = null
-}
-
 variable "instance_type" {
   description = "ARM based instance type"
   type        = string
-  default     = "t4g.nano"
+  default     = "t4g.micro"
 }
 
-variable "api_key" {
-  description = "API key used to Auth when requesting to the API"
+variable "wg_password_hash" {
+  description = "Bcrypt hash of the wg-easy web panel password. Generate with: docker run --rm -it ghcr.io/wg-easy/wg-easy wgpw YOUR_PASSWORD"
   type        = string
   sensitive   = true
 }
