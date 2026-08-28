@@ -1,16 +1,10 @@
-data "template_file" "user_data" {
-  template = file("${path.module}/template/user_data.sh")
-  vars = {
-    api_key = var.api_key
-  }
-}
-
 data "aws_ami" "this" {
   most_recent = true
+  owners      = ["099720109477"] # Canonical
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22*"]
+    values = ["ubuntu/images/*/ubuntu-noble-24*"]
   }
 
   filter {
@@ -21,10 +15,5 @@ data "aws_ami" "this" {
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
-  }
-
-  filter {
-    name   = "owner-alias"
-    values = ["amazon"]
   }
 }
