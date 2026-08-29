@@ -6,9 +6,11 @@ resource "aws_spot_instance_request" "this" {
   wait_for_fulfillment   = true
   iam_instance_profile   = aws_iam_instance_profile.this.name
   vpc_security_group_ids = [aws_security_group.this.id]
-  user_data = templatefile("${path.module}/template/user_data.sh", {
-    wg_password_hash = var.wg_password_hash
-  })
+  user_data              = file("${path.module}/template/user_data.sh")
+
+  tags = {
+    Name = "Wireguard"
+  }
 }
 
 resource "null_resource" "tag_spot_instance" {
