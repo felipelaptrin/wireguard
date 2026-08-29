@@ -20,12 +20,6 @@ Standard WireGuard has a recognizable handshake signature that Deep Packet Inspe
 | Android | [AmneziaWG](https://play.google.com/store/apps/details?id=org.amnezia.awg), WG Tunnel, or Amnezia VPN |
 | Windows / Linux | [AmneziaWG client](https://github.com/amnezia-vpn/amnezia-client) |
 
-## Architecture
-
-![Architecture](docs/architecture.png)
-
-A small ARM EC2 spot instance runs wg-easy in Docker. The WireGuard tunnel (port 51820/UDP) is the only port open to the internet. The wg-easy web panel (port 51821) is bound to localhost and accessed exclusively via SSM port forwarding — no SSH keys or bastion required.
-
 ## How to Run
 
 ### Prerequisites
