@@ -61,7 +61,14 @@ From the wg-easy panel:
 - **Mobile (Android/iOS):** scan the QR code with the **AmneziaWG** app (not the standard WireGuard app)
 - **Desktop:** download the `.conf` file and import it into the **AmneziaWG** client
 
-### 5) Destroy when done
+### 5) Verify there's no IPv6 leak
+Dual-stack tunnels are only safe if IPv6 is actually routed through them — otherwise it silently goes around the VPN in the clear. With the VPN connected, confirm your IPv6 traffic exits through the server too:
+```sh
+curl -6 ifconfig.me
+```
+This should return the VPN server's IPv6 address, not your ISP's. If it fails or times out instead, that means you have no native IPv6 at all on your current network — which is also safe (nothing to leak), just double-check on a network you know is dual-stack (e.g. mobile data) before trusting it.
+
+### 6) Destroy when done
 ```sh
 cd terraform
 terraform destroy

@@ -71,6 +71,20 @@ services:
       - OVERRIDE_AUTO_AWG=awg
     volumes:
       - /root/.wg-easy:/etc/wireguard
+      # Bind-mount the host's kernel modules so ip6tables can load ip6_tables.ko.
+      # Without this, the container's own (Alpine) /lib/modules is empty, IPv6
+      # firewall rules fail, and wg-quick/awg-quick aborts entirely — the only
+      # workaround then is DISABLE_IPV6=true, which leaks IPv6 traffic around
+      # the tunnel on any dual-stack client network. Mounting real modules in
+      # makes the server correctly dual-stack capable (verified: instance-level
+      # curl -6/ping6 work, NAT/forwarding rules are populated, peer configs
+      # include a valid IPv6 address). End-to-end client connectivity still
+      # depends on the client app, though — the "Amnezia VPN" iOS/macOS app has
+      # open bugs mishandling dual-stack Address fields (e.g. amnezia-vpn/
+      # amnezia-client#1630, #2539)
+      - /lib/modules:/lib/modules:ro
+    devices:
+      - /dev/net/tun:/dev/net/tun
     ports:
       - "51820:51820/udp"
       - "127.0.0.1:51821:51821/tcp"
