@@ -49,23 +49,26 @@ PUBLIC_IP=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" http://169.254.16
 
 mkdir -p /root/.wg-easy
 
-# Write runtime values to .env — Docker Compose picks this up automatically
-printf 'WG_HOST=%s\n' "$PUBLIC_IP"           > /root/.env
-printf "PASSWORD_HASH='%s'\n" '${wg_password_hash}' >> /root/.env
+# WG_HOST is only known at boot time (fetched from IMDS), so it's written to
+# .env dynamically. Everything else static lives in docker-compose.yml directly.
+# NOTE: wg-easy v15 has no PASSWORD_HASH env var (v14-only, removed). The admin
+# account (username + password) is created through the panel's first-run setup
+# wizard instead — see README.
+printf 'WG_HOST=%s\n' "$PUBLIC_IP" > /root/.env
 
 cat > /root/docker-compose.yml <<'COMPOSE'
 services:
   wg-easy:
-    image: ghcr.io/wg-easy/wg-easy:latest
+    image: ghcr.io/wg-easy/wg-easy:15.4.0
     container_name: wg-easy
     restart: unless-stopped
     env_file: .env
     environment:
       - LANG=en
-      - WG_DEFAULT_DNS=1.1.1.1
-      - WG_DEFAULT_ADDRESS=10.0.0.x
-      - WG_ALLOWED_IPS=0.0.0.0/0
-      - WG_PERSISTENT_KEEPALIVE=25
+      - PORT=51821
+      - INSECURE=true
+      - EXPERIMENTAL_AWG=true
+      - OVERRIDE_AUTO_AWG=awg
     volumes:
       - /root/.wg-easy:/etc/wireguard
     ports:
